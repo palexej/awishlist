@@ -9,7 +9,7 @@
 
   <style media="screen">
   body {
-    background: url() no-repeat center center fixed;
+    background: url(https://random.imagecdn.app/1920/1080) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
