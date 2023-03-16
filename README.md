@@ -8,7 +8,6 @@
 #include <string.h>
 char FILENAME[]="file.log";
 FILE *readFile;
-//удаление файла и завершение работы программы
 void SIGTERM_Handler(int signal)
 {
 if (-1 == remove (FILENAME))
@@ -19,13 +18,13 @@ printf ("Выполнено удаление файла\n");
 printf("Завершение работы\n");
 }
 }
-//чтение значения из файла, увеличение на 1 и обратная запись в файл
-void SIGUSR1_Handler(int signal)//считывание файла
+
+void SIGUSR1_Handler(int signal)
 {
 printf("Увеличение значения файла на 1\n");
 int myNumber;
 FILE *readFile = fopen(FILENAME, "r");
-if (readFile != NULL)//если файла нет, ничего не делаем
+if (readFile != NULL)
 {
 fscanf(readFile, "%d", &myNumber);
 myNumber += 1;
@@ -44,19 +43,19 @@ void SIGHUP_Handler(int signal)
 {
 printf("Создание файла и запись в него числа 0\n");
 readFile=fopen (FILENAME,"w");
-fprintf (readFile,"%d",0);//Запись в файл
+fprintf (readFile,"%d",0);
 fclose (readFile);
 }
 int main()
 {
 pid_t pid;
 pid = fork();
-//проверка на верные значения pid
+
 if (pid < 0 || setsid() < 0)
 exit(EXIT_FAILURE);
 if (pid > 0)
 exit(EXIT_SUCCESS);
-//добавление прослушивания каждого из событий
+
 struct sigaction act;
 sigset_t set;
 memset(&act,0,sizeof(act));
@@ -79,7 +78,7 @@ act.sa_mask = set;
 sigaction(SIGTERM, &act, 0);
 FILE *readSignalFile = fopen("signals.txt","r");
 char buf[255];
-while(!feof(readSignalFile))//чтение сигналов из файла
+while(!feof(readSignalFile))
 {
 char * myString=fgets(buf,sizeof(buf),readSignalFile);
 printf("Считан сигнал %s",myString);
@@ -98,21 +97,15 @@ return 0;
 }
 }
 fclose(readSignalFile);
-// raise(SIGUSR1);
-// raise(SIGHUP);
-// raise(SIGUSR1);
-// raise(SIGUSR1);
-// raise(SIGUSR1);
-// raise(SIGTERM);
-//повторное выполнение описанных выше действий
+
 pid = fork();
 if (pid < 0)
 exit(EXIT_FAILURE);
 if (pid > 0)
 exit(EXIT_SUCCESS);
-//смена прав доступа на разрешение выполнения всего
+
 umask(0);
-//смена директории для демона
+
 chdir("/");
 int x;
 for (x = sysconf(_SC_OPEN_MAX); x>=0; x--)
