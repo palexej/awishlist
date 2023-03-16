@@ -52,7 +52,7 @@ int main(int argc, char const *argv[])
 
     int bytesQuantity = atoi(argv[1]);
     for (currentFileSize = 0; currentFileSize < bytesQuantity; currentFileSize++)
-    {
+     {
         if(exitFlag)
             return 0;
 
@@ -78,7 +78,7 @@ void SIGUSR1_Handler(int signal)
 
 void SIGTERM_Handler(int signal)
 {
-    printf("\nProgramm has been interrupted by SIGTERM\n");
+printf("\nProgramm has been interrupted by SIGTERM\n");
     CloseFile();
     if (unlink("example") == -1)
         printf("\nFile could'n be deleted\n");
@@ -101,5 +101,5 @@ void CloseFile()
         printf("\nFile was closed Successfilly\n");
         fileClosedFlag = 1;
     }
-}//
+}
 
