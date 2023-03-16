@@ -1,166 +1,105 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-
+#include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <string.h>
 
-char FILENAME[]="file.log";
-FILE *readFile;
+void SIGUSR1_Handler(int signal);
+void SIGTERM_Handler(int signal);
+void CloseFile();
 
-//удаление файла и завершение работы программы
+int currentFileSize = 0;
+int fileDescriptor = -1;
+int exitFlag = 0;
+int fileClosedFlag = 0;
+
+int main(int argc, char const *argv[])
+{
+    if (argc != 2)
+    {
+        printf("Wrong command line's arguments\n");
+        return 1;
+    }
+    printf("\nStart of programm\n");
+
+    struct sigaction act'
+    sigset_t set;
+
+    memset(&act,0,sizeof(act));
+    act.sa_handler = SIGUSR1_Handler;
+    sigemptyset(&set);
+    sigaddset(&set, SIGUSR1);
+    act.sa_mask = set;
+    sigaction(SIGUSR1, &act, 0);
+
+    memset(&act, 0, sizeof(act));
+    act.sa_handler = SIGTERM_Handler;
+    sigemptyset(&set);
+    sigaddset(&set, SIGTERM);
+    act.sa_mask = set;
+    sigaction(SIGTERM, &act, 0);
+
+    fileDescriptor = open("example", 0_RDWR | 0_CREAT | 0_TRUNC, 00600);
+    if (fileDescriptor == -1)
+    {
+        printf("\nFile creation error\n");
+        return 1;
+    }
+    else printf("\nFile was created successfilly\n");
+    raise(SIGUSR1);
+    printf("\nStart of filling file\n");
+
+    int bytesQuantity = atoi(argv[1]);
+    for (currentFileSize = 0; currentFileSize < bytesQuantity; currentFileSize++)
+    {
+        if(exitFlag)
+            return 0;
+
+        char randomValue = (char)(rang() % 256);
+        if (write(fileDescriptor, (void*)(&randomValue), sizeof(randomValue)) == -1)
+        {
+            printf("\nFile writing error\n");
+            CloseFile();
+            return 1;
+        }
+    }
+
+    printf("\nEnd of filling file\n");
+    CloseFile();
+    printf("\nEnd of programm\n");
+    return 0;
+}
+
+void SIGUSR1_Handler(int signal)
+{
+    printf("\n Current file size is %d bytes\n", currentFileSize);
+}
+
 void SIGTERM_Handler(int signal)
 {
-if (-1 == remove (FILENAME))
+    printf("\nProgramm has been interrupted by SIGTERM\n");
+    CloseFile();
+    if (unlink("example") == -1)
+        printf("\nFile could'n be deleted\n");
+    else
+        printf("\nFile was deleted successfully\n");
+    exitFlag = 1;
+}
 
-printf ("Ошибка удаления файла\n");
-else
+void CloseFile()
 {
-printf ("Выполнено удаление файла\n");
-printf("Завершение работы\n");
+    if (fileClosedFlag)
+        return;
+    if (close(fileDescriptor) == -1)
+    {
+        printf("\nFile couldn't be closed\n");
+        fileClosedFlag = 0;
+    }
+    else
+    {
+        printf("\nFile was closed Successfilly\n");
+        fileClosedFlag = 1;
+    }
 }
-}
-
-//чтение значения из файла, увеличение на 1 и обратная запись в файл
-void SIGUSR1_Handler(int signal)//считывание файла
-{
-printf("Увеличение значения файла на 1\n");
-
-int myNumber;
-FILE *readFile = fopen(FILENAME, "r");
-if (readFile != NULL)//если файла нет, ничего не делаем
-{
-
-fscanf(readFile, "%d", &myNumber);
-
-myNumber += 1;
-printf("\tЗаписано значение: %d\n",myNumber);
-
-FILE *writeFile = fopen(FILENAME, "w");
-fprintf(writeFile,"%d", myNumber);
-
-fclose(writeFile);
-fclose(readFile);
-}
-else
-{
-printf("Файл не существует, значение не записано\n");
-}
-
-}
-
-void SIGHUP_Handler(int signal)
-{
-printf("Создание файла и запись в него числа 0\n");
-
-readFile=fopen (FILENAME,"w");
-
-fprintf (readFile,"%d",0);//Запись в файл
-
-fclose (readFile);
-}
-
-int main()
-{
-pid_t pid;
-
-pid = fork();
-
-//проверка на верные значения pid
-if (pid < 0 || setsid() < 0)
-exit(EXIT_FAILURE);
-
-if (pid > 0)
-exit(EXIT_SUCCESS);
-
-//добавление прослушивания каждого из событий
-struct sigaction act;
-sigset_t set;
-
-memset(&act,0,sizeof(act));
-act.sa_handler = SIGHUP_Handler;
-sigemptyset(&set);
-sigaddset(&set, SIGHUP);
-act.sa_mask = set;
-sigaction(SIGHUP, &act, 0);
-
-memset(&act,0,sizeof(act));
-act.sa_handler = SIGUSR1_Handler;
-sigemptyset(&set);
-sigaddset(&set, SIGUSR1);
-act.sa_mask = set;
-sigaction(SIGUSR1, &act, 0);
-
-memset(&act,0,sizeof(act));
-act.sa_handler = SIGTERM_Handler;
-sigemptyset(&set);
-sigaddset(&set, SIGTERM);
-act.sa_mask = set;
-sigaction(SIGTERM, &act, 0);
-
-FILE *readSignalFile = fopen("signals.txt","r");
-
-char buf[255];
-
-while(!feof(readSignalFile))//чтение сигналов из файла
-{
-
-char * myString=fgets(buf,sizeof(buf),readSignalFile);
-
-printf("Считан сигнал %s",myString);
-if(strcmp(myString,"SIGHUP\n")==0)
-{
-raise(SIGHUP);
-}
-if(strcmp(myString,"SIGUSR1\n")==0)
-{
-raise(SIGUSR1);
-
-}
-if(strcmp(myString,"SIGTERM\n")==0)
-{
-raise(SIGTERM);
-return 0;
-}
-
-}
-
-fclose(readSignalFile);
-
-// raise(SIGUSR1);
-// raise(SIGHUP);
-
-// raise(SIGUSR1);
-// raise(SIGUSR1);
-// raise(SIGUSR1);
-
-// raise(SIGTERM);
-
-//повторное выполнение описанных выше действий
-pid = fork();
-
-if (pid < 0)
-exit(EXIT_FAILURE);
-
-if (pid > 0)
-exit(EXIT_SUCCESS);
-
-//смена прав доступа на разрешение выполнения всего
-umask(0);
-
-//смена директории для демона
-chdir("/");
-
-int x;
-for (x = sysconf(_SC_OPEN_MAX); x>=0; x--)
-{
-close (x);
-}
-
-}
-
 
