@@ -101,5 +101,5 @@ void CloseFile()
         printf("\nFile was closed Successfilly\n");
         fileClosedFlag = 1;
     }
-}
+}//
 
