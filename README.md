@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
-#include <Windows.h>
 
 const char DEFAULT_FILE[]="pr1.bin";
 struct student
@@ -53,7 +52,7 @@ int main (int argc, char *argv[])
 {
 SetConsoleCP(1251);
 SetConsoleOutputCP(1251);
-setlocale(LC_ALL, "Rus");
+
 char file[50];
 char menu;
 list student = NULL;
